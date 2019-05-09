@@ -1,14 +1,18 @@
 package com.themillhousegroup.scoup
 
-import org.jsoup.{ Connection, Jsoup }
+import org.jsoup.{Connection, Jsoup}
 import org.jsoup.nodes.Document
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.themillhousegroup.scoup.options.ScoupOptions
-import org.jsoup.Connection.{ Response, Method }
+import org.jsoup.Connection.{Method, Response}
+
 import scala.collection.mutable
 import java.net.URL
+
+import org.jsoup.parser.Parser
 
 object Scoup extends Scoup(new RealJsoup(), ScoupOptions()) {}
 
@@ -74,15 +78,19 @@ class Scoup(impl: JSoupProvider = new RealJsoup(), scoupOptions: ScoupOptions = 
   def parseHTML(html: String): Document = {
     impl.parse(html)
   }
+
+  def parseXML(xml: String): Document = {
+    impl.parse(xml, Parser.xmlParser())
+  }
 }
 
 /** Indirection to allow JSoup's static API to be mocked */
 private[scoup] trait JSoupProvider {
   def connect(url: String): Connection
-  def parse(html: String): Document
+  def parse(html: String, parser: Parser = Parser.htmlParser()): Document
 }
 
 private[scoup] class RealJsoup extends JSoupProvider {
   def connect(url: String): Connection = Jsoup.connect(url)
-  def parse(html: String): Document = Jsoup.parse(html)
+  def parse(html: String, parser: Parser): Document = Jsoup.parse(html, "" , parser)
 }
